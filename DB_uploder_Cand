@@ -1,22 +1,40 @@
 import os
 #import numpy
 #import pandas
-import pymssql
+import pymssql  # DB 접속
 import logging
-import configparser as parser
+import configparser as parser  # config.ini 사용하기
+import shutil  # 파일 복사
 
 # config.ini 읽기 설정
 config = parser.ConfigParser()
 config.read('.\config.ini')
 
+# DB에 업로드할 파일 경로
+forder_path = config['PATH']['config_path']
+
+# 복사할 File 정보 : config.ini 내에서 가져오기
+copy_date = config['COPY']['copy_date']
+
+# 복사할 File 원본, 목저지 변수 설정 
+from_file_path = '%s/copy/TD_Monitor_DOT-%s.txt' %(forder_path,copy_date)
+to_file_path = '%s/TD_Monitor_DOT-%s.txt' %(forder_path,copy_date)
+
+# 복사 실행
+try:
+    shutil.copyfile(from_file_path,to_file_path)
+except FileNotFoundError:
+    print("해당 파일을 찾을 수 없습니다.")
+except PermissionError:
+    print("권한이 없어 파일을 복사할 수 없습니다.")
+except Exception as e:
+    print("오류 발생:", e)
 
 # DB 접속 정보
 df_info = {
     'DB_56' : ['12.96.110.56','hyuk49.kang','12415640','QD']
 }
-# DB에 업로드할 파일 경로
-forder_path = config['PATH']['config_path']
-#forder_path = 'D:\\Non_Documents\\DB_Upload'
+
 
 # .txt 파일 목록 가져오기
 txt_files = [f for f in os.listdir(forder_path) if f.endswith('.txt')]
