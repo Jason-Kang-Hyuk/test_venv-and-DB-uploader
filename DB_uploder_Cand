@@ -1,0 +1,56 @@
+import os
+#import numpy
+#import pandas
+import pymssql
+import logging
+import configparser as parser
+
+# config.ini 읽기 설정
+config = parser.ConfigParser()
+config.read('.\config.ini')
+
+
+# DB 접속 정보
+df_info = {
+    'DB_56' : ['12.96.110.56','hyuk49.kang','12415640','QD']
+}
+# DB에 업로드할 파일 경로
+forder_path = config['PATH']['config_path']
+#forder_path = 'D:\\Non_Documents\\DB_Upload'
+
+# .txt 파일 목록 가져오기
+txt_files = [f for f in os.listdir(forder_path) if f.endswith('.txt')]
+
+
+# DB 접속   
+conn_59 = pymssql.connect(host=df_info['DB_56'][0], user=df_info['DB_56'][1],
+                     password=df_info['DB_56'][2], database=df_info['DB_56'][3], charset='utf8')
+cur = conn_59.cursor()
+
+# 파일 내용을 DB에 삽입
+# DB Upload할 File 읽기
+for txt_file in txt_files:
+    # 파일 경로 생성
+    file_path = os.path.join(forder_path, txt_file)
+    # 파일 열기
+    with open(file_path, 'r') as file:
+        # 파일 내용 읽기
+        file_content = file.read().split('\t')
+        print(file_content)
+        query1 = "INSERT INTO ENGR_USED_TABLE (cellid,Code,CoordX,CoordY,Item,AddItem01,AddItem02,AddItem03,AddItem04,AddItem05,AddItem06,AddItem07,AddItem08,AddItem09,AddItem10) VALUES (%s, %s, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query2 = "INSERT INTO ENGR_USED_TABLE (cellid,Code) VALUES (%s, %s)"
+        cur.execute(query1,tuple(file_content))
+        conn_59.commit()
+
+
+# 삽입된 내용 출력
+cur.execute("SELECT * FROM ENGR_USED_TABLE")
+row = cur.fetchall()
+print("Result")
+for row in row:
+    print(row)
+    #print("Bdate = %s, cellid = %s " %( row[0], row[1]))
+conn_59.close()
+
+#except: all_errors:
+#    logger.info()
